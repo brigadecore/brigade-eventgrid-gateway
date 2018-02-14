@@ -1,0 +1,5 @@
+[[constraint]]
+  name = "github.com/azure/brigade"
+
+[[constraint]]
+  name = "github.com/gin-gonic/gin"

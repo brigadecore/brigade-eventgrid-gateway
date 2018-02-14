@@ -1,0 +1,24 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/tls-acme: "true"
+    kubernetes.io/ingress.class: "nginx"
+  name: {{ template "fullname" . }}
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+spec:
+  tls:
+  - hosts:
+    - {{ .Release.Name }}.{{ .Values.basedomain }}
+    secretName: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
+  rules:
+  - host: {{ .Release.Name }}.{{ .Values.basedomain }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "fullname" . }}
+          servicePort: {{ .Values.service.externalPort }}
+{{- end -}}
