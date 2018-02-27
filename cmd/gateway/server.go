@@ -85,25 +85,12 @@ func azFn(c *gin.Context) {
 		log.Debugf("failed to marshal event: %v", err)
 	}
 
-	const script = `const { events } = require('brigadier')
-
-events.on("exec", (brigadeEvent, project) => {
-  console.log("Hello world!")
-})
-
-
-events.on("Microsoft.Storage.BlobDeleted", (e, p) => {
-  console.log(e)
-})
-`
-
 	build := &brigade.Build{
 		ProjectID: pid,
 		Type:      ev.EventType,
 		Provider:  "eventgrid",
 		Commit:    "master",
 		Payload:   payload,
-		Script:    []byte(script),
 	}
 
 	err = store.CreateBuild(build)
