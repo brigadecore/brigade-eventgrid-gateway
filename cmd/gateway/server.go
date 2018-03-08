@@ -65,7 +65,7 @@ func azFn(c *gin.Context) {
 		data := ev.Data.(map[string]interface{})
 
 		// validate endpoint - https://docs.microsoft.com/en-us/azure/event-grid/security-authentication#webhook-event-delivery
-		r := gin.H{"validationCode": data["validationCode"]}
+		r := gin.H{"validationResponse": data["validationCode"]}
 		c.JSON(http.StatusOK, r)
 		log.Debugf("sent validation response: %v", r)
 		return
@@ -89,8 +89,11 @@ func azFn(c *gin.Context) {
 		ProjectID: pid,
 		Type:      ev.EventType,
 		Provider:  "eventgrid",
-		Commit:    "master",
 		Payload:   payload,
+		Revision: &brigade.Revision{
+			Ref:    "master",
+			Commit: "HEAD",
+		},
 	}
 
 	err = store.CreateBuild(build)
