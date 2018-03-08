@@ -1,0 +1,37 @@
+# Default values for eventgrid-subscriber.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+restartPolicy: Never
+
+image:
+  repository: radumatei/eventgrid-subscriber
+  tag: v0.1
+  pullPolicy: IfNotPresent
+
+# DO NOT COMMIT TO SOURCE CONTROL!
+azureSecret:
+  AZ_SUBSCRIPTION_ID: <azure-subscription-id>
+  AZ_TENANT_ID: <azure-tenant-id>
+  AZ_CLIENT_ID: <azure-client-id>
+  AZ_CLIENT_SECRET: <azure-client-secret>
+
+# DO NOT COMMIT TO SOURCE CONTROL!
+azureValues:
+  RESOURCE_GROUP: <existing-resource-group>
+  STORAGE_ACCOUNT: <existing-storage-account>
+  EVENTGRID_SUBSCRIPTION_NAME: eventgridtest
+  WEBHOOK_URL: <your-HTTPS-endpoint>/eventgrid/brigade-project-id
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #  cpu: 100m
+  #  memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 128Mi

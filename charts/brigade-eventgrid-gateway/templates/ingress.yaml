@@ -1,24 +1,22 @@
-{{- if .Values.ingress.enabled -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   annotations:
     kubernetes.io/tls-acme: "true"
     kubernetes.io/ingress.class: "nginx"
-  name: {{ template "fullname" . }}
+  name: {{ template "brigade-eventgrid-gateway.fullname" . }}
   labels:
     chart: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
 spec:
   tls:
   - hosts:
-    - {{ .Release.Name }}.{{ .Values.basedomain }}
+    - {{ .Values.ingress.host }}
     secretName: "{{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}"
   rules:
-  - host: {{ .Release.Name }}.{{ .Values.basedomain }}
+  - host: {{ .Values.ingress.host }}
     http:
       paths:
       - path: /
         backend:
-          serviceName: {{ template "fullname" . }}
+          serviceName: {{ template "brigade-eventgrid-gateway.fullname" . }}
           servicePort: {{ .Values.service.externalPort }}
-{{- end -}}
