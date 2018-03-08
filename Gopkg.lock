@@ -9,9 +9,8 @@
 
 [[projects]]
   name = "github.com/Azure/brigade"
-  packages = ["pkg/brigade","pkg/storage","pkg/storage/kube","pkg/webhook"]
-  revision = "2f3eeb41eec7365b8f2b85dfff02f7d84da54bf3"
-  version = "v0.9.0"
+  packages = ["pkg/brigade","pkg/storage","pkg/storage/kube"]
+  revision = "2d50a318013b101611c0c466d8078d3f84aae568"
 
 [[projects]]
   name = "github.com/Azure/go-autorest"
@@ -30,6 +29,12 @@
   name = "github.com/PuerkitoBio/urlesc"
   packages = ["."]
   revision = "de5bf2ad457846296e2031421a34e2568e304e35"
+
+[[projects]]
+  name = "github.com/Sirupsen/logrus"
+  packages = ["."]
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -120,18 +125,6 @@
   name = "github.com/google/btree"
   packages = ["."]
   revision = "e89373fe6b4a7413d7acd6da1725b83ef713e6e4"
-
-[[projects]]
-  name = "github.com/google/go-github"
-  packages = ["github"]
-  revision = "e48060a28fac52d0f1cb758bc8b87c07bac4a87d"
-  version = "v15.0.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/google/go-querystring"
-  packages = ["query"]
-  revision = "53e6ce116135b80d037921a7fdd5138cf32d7a8a"
 
 [[projects]]
   branch = "master"
@@ -226,14 +219,8 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp","http2","http2/hpack","idna","lex/httplex"]
+  packages = ["http2","http2/hpack","idna","lex/httplex"]
   revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/oauth2"
-  packages = [".","internal"]
-  revision = "543e37812f10c46c622c9575afd7ad22f22a12ba"
 
 [[projects]]
   branch = "master"
@@ -246,18 +233,6 @@
   name = "golang.org/x/text"
   packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable","width"]
   revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
-
-[[projects]]
-  name = "google.golang.org/appengine"
-  packages = ["internal","internal/base","internal/datastore","internal/log","internal/remote_api","internal/urlfetch","urlfetch"]
-  revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
-  version = "v1.0.0"
-
-[[projects]]
-  name = "gopkg.in/gin-gonic/gin.v1"
-  packages = ["."]
-  revision = "d459835d2b077e44f7c9b453505ee29881d5d12d"
-  version = "v1.2"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"
@@ -302,6 +277,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6cfa38cd2621122b004f839bf352f62ecd70933179f7715bb72b462cb797b19d"
+  inputs-digest = "b066c568ab85cc436672972be4b3bd17ea645ce43c40a35f5d505f0457b6f44c"
   solver-name = "gps-cdcl"
   solver-version = 1
