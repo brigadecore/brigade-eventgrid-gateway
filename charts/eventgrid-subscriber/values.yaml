@@ -11,10 +11,10 @@ image:
 azureSecret: eventgrid-subscriber-secret
 
 azureValues:
-  RESOURCE_GROUP: eventgridrg
-  STORAGE_ACCOUNT: eventgridk8s
+  RESOURCE_GROUP: <existing-resource-group>
+  STORAGE_ACCOUNT: <existing-storage-account>
   EVENTGRID_SUBSCRIPTION_NAME: eventgridtest
-  WEBHOOK_URL: https://brigade.kube.radu-matei.com/eventgrid/brigade-a450e8624578997e2c0cc3cd2abff8bb962acf99e1e4fd7db7b1ec
+  WEBHOOK_URL: <your-HTTPS-endpoint>/eventgrid/brigade-project-id
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
