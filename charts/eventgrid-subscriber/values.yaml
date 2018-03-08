@@ -1,7 +1,3 @@
-# Default values for eventgrid-subscriber.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 restartPolicy: Never
 
@@ -10,19 +6,15 @@ image:
   tag: v0.1
   pullPolicy: IfNotPresent
 
-# DO NOT COMMIT TO SOURCE CONTROL!
-azureSecret:
-  AZ_SUBSCRIPTION_ID: <azure-subscription-id>
-  AZ_TENANT_ID: <azure-tenant-id>
-  AZ_CLIENT_ID: <azure-client-id>
-  AZ_CLIENT_SECRET: <azure-client-secret>
 
-# DO NOT COMMIT TO SOURCE CONTROL!
+# name of the secret that contains Azure credentials (see readme)
+azureSecret: eventgrid-subscriber-secret
+
 azureValues:
-  RESOURCE_GROUP: <existing-resource-group>
-  STORAGE_ACCOUNT: <existing-storage-account>
+  RESOURCE_GROUP: eventgridrg
+  STORAGE_ACCOUNT: eventgridk8s
   EVENTGRID_SUBSCRIPTION_NAME: eventgridtest
-  WEBHOOK_URL: <your-HTTPS-endpoint>/eventgrid/brigade-project-id
+  WEBHOOK_URL: https://brigade.kube.radu-matei.com/eventgrid/brigade-a450e8624578997e2c0cc3cd2abff8bb962acf99e1e4fd7db7b1ec
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious

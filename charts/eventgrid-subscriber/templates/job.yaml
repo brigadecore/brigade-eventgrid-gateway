@@ -25,21 +25,21 @@ spec:
         - name: AZ_SUBSCRIPTION_ID
           valueFrom: 
             secretKeyRef:
-              name: {{ template "eventgrid-subscriber.name" . }}-secret
+              name: {{ .Values.azureSecret }}
               key: AZ_SUBSCRIPTION_ID
         - name: AZ_TENANT_ID
           valueFrom: 
             secretKeyRef:
-              name: {{ template "eventgrid-subscriber.name" . }}-secret
+              name: {{ .Values.azureSecret }}
               key: AZ_TENANT_ID
         - name: AZ_CLIENT_ID
           valueFrom: 
             secretKeyRef:
-              name: {{ template "eventgrid-subscriber.name" . }}-secret
+              name: {{ .Values.azureSecret }}
               key: AZ_CLIENT_ID
         - name: "AZ_CLIENT_SECRET"
           valueFrom: 
             secretKeyRef:
-              name: {{ template "eventgrid-subscriber.name" . }}-secret
+              name: {{ .Values.azureSecret }}
               key: AZ_CLIENT_SECRET
       restartPolicy: {{ .Values.restartPolicy }}

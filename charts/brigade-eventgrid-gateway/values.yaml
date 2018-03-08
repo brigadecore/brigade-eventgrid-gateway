@@ -11,6 +11,7 @@ service:
   externalPort: 80
 
 
+# for Azure EventGrid you must have TLS ingress
 ingress:
   enabled: true
   annotations:
