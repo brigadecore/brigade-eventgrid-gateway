@@ -9,6 +9,8 @@ import (
 	"github.com/Azure/brigade/pkg/brigade"
 	"github.com/Azure/brigade/pkg/storage"
 	"github.com/Azure/brigade/pkg/storage/kube"
+
+	"github.com/radu-matei/brigade-eventgrid-gateway/pkg/cloudevents"
 	eventgrid "github.com/radu-matei/brigade-eventgrid-gateway/pkg/eventgrid"
 
 	log "github.com/Sirupsen/logrus"
@@ -43,6 +45,9 @@ func main() {
 
 	e := router.Group("/eventgrid")
 	e.POST("/:project", azFn)
+
+	c := router.Group("/cloudevents")
+	c.POST("/:project", ceFn)
 
 	router.Run()
 }
@@ -104,5 +109,55 @@ func azFn(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "OK"})
+	return
+}
+
+// ceFn is a cloud events handler.
+func ceFn(c *gin.Context) {
+	// Decoding here does two things: First, it validates the format, and second
+	// it converts all of the accepted formats into a uniform representation.
+	envelope, err := cloudevents.NewFromRequest(c.Request)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "Malformed body"})
+		log.Debugf("cannot decode event: %v", err)
+		return
+	}
+
+	pid := c.Param("project")
+	if _, err := store.GetProject(pid); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"status": "Resource Not Found"})
+		log.Debugf("cannot get project ID: %v", err)
+		return
+	}
+
+	payload, err := json.Marshal(envelope)
+	if err != nil {
+		log.Debugf("failed to marshal event: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Failed encoding"})
+		return
+	}
+
+	build := &brigade.Build{
+		ProjectID: pid,
+		Type:      envelope.EventType,
+		Provider:  "cloudevents",
+		Payload:   payload,
+		Revision: &brigade.Revision{
+			Ref: "master",
+		},
+	}
+
+	err = store.CreateBuild(build)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "Failed to invoke hook"})
+		log.Debugf("failed to create build: %v", err)
+		return
+	}
+
+	// It's unclear what we are supposed to return. The spec shows a response that
+	// contains the entire envelope... but it doesn't say under which conditions
+	// this is to be returned. So the safest route is to return it here.
+	// https://github.com/cloudevents/spec/blob/v0.1/http-transport-binding.md#324-examples
+	c.JSON(http.StatusOK, envelope)
 	return
 }
