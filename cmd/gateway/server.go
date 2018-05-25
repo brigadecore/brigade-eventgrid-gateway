@@ -48,9 +48,10 @@ func main() {
 
 	e := router.Group("/eventgrid")
 	e.POST("/:project", azFn)
+	e.POST("/:project/:token", azFn)
 
-	c := router.Group("/cloudevents")
-	c.POST("/:project", ceFn)
+	c := router.Group("/cloudevents/v0.1")
+	c.POST("/:project/:token", ceFn)
 
 	router.Run()
 }
@@ -87,6 +88,18 @@ func azFn(c *gin.Context) {
 		return
 	}
 	log.Debugf("found project: %v", project)
+
+	// Note that this will always fail on the old route if a token is set on
+	// the project.
+	// TODO: Change this when Project.Gateways gets implemented.
+	if realToken := project.Secrets["eventGridToken"]; realToken != "" {
+		tok := c.Param("token")
+		if realToken != tok {
+			c.JSON(http.StatusForbidden, gin.H{"status": "Forbidden"})
+			log.Debugf("Token does not match project's version: %v", err)
+			return
+		}
+	}
 
 	payload, err := json.Marshal(ev)
 	if err != nil {
@@ -142,10 +155,21 @@ func ceFn(c *gin.Context) {
 	}
 
 	pid := c.Param("project")
-	if _, err := store.GetProject(pid); err != nil {
+	project, err := store.GetProject(pid)
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"status": "Resource Not Found"})
 		log.Debugf("cannot get project ID: %v", err)
 		return
+	}
+
+	// TODO: Change this when Project.Gateways gets implemented.
+	if realToken := project.Secrets["eventGridToken"]; realToken != "" {
+		tok := c.Param("token")
+		if realToken != tok {
+			c.JSON(http.StatusForbidden, gin.H{"status": "Forbidden"})
+			log.Debugf("Token does not match project's version: %v", err)
+			return
+		}
 	}
 
 	payload, err := json.Marshal(envelope)
