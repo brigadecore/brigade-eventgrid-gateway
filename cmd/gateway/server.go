@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"flag"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -114,6 +117,21 @@ func azFn(c *gin.Context) {
 
 // ceFn is a cloud events handler.
 func ceFn(c *gin.Context) {
+
+	// read the request body
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Debugf("cannot read body: %v", err)
+	}
+	// check for validation event
+	if bytes.Contains(body, []byte("Microsoft.EventGrid.SubscriptionValidationEvent")) {
+		validate(c, bytes.NewReader(body))
+		return
+	}
+
+	// put request body back so we can decode the envelope
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
 	// Decoding here does two things: First, it validates the format, and second
 	// it converts all of the accepted formats into a uniform representation.
 	envelope, err := cloudevents.NewFromRequest(c.Request)
@@ -160,4 +178,25 @@ func ceFn(c *gin.Context) {
 	// https://github.com/cloudevents/spec/blob/v0.1/http-transport-binding.md#324-examples
 	c.JSON(http.StatusOK, envelope)
 	return
+}
+
+// TODO: once the validation event is CloudEvents compliant, remove this
+func validate(c *gin.Context, body io.Reader) error {
+	decoder := json.NewDecoder(body)
+	var received []eventgrid.Event
+
+	err := decoder.Decode(&received)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "Malformed body"})
+		log.Debugf("validation cannot decode event: %v", err)
+		return err
+	}
+	ev := received[0]
+	data := ev.Data.(map[string]interface{})
+
+	// validate endpoint - https://docs.microsoft.com/en-us/azure/event-grid/security-authentication#webhook-event-delivery
+	r := gin.H{"validationResponse": data["validationCode"]}
+	c.JSON(http.StatusOK, r)
+	log.Debugf("sent validation response: %v", r)
+	return nil
 }
