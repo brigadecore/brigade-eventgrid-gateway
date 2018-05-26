@@ -11,3 +11,7 @@ events.on("Microsoft.Storage.BlobCreated", (e, p) => {
 events.on("Microsoft.EventGrid.SubscriptionValidationEvent", (e, p) => {
   console.log(e)
 })
+
+events.on("exec", (e, p) => {
+  console.log(e);
+})
