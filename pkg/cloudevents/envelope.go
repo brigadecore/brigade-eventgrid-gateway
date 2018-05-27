@@ -65,7 +65,7 @@ func NewFromRequest(req *http.Request) (*Envelope, error) {
 	// suggests that another format (like Avro) might be used. So we're going
 	// with the most conservative reading.
 	// https://github.com/cloudevents/spec/blob/v0.1/http-transport-binding.md#3-http-message-mapping
-	if ct := req.Header.Get("content-type"); ct != CloudEventsContentType {
+	if ct := req.Header.Get("content-type"); !strings.Contains(ct, CloudEventsContentType) {
 		return NewFromHeaders(req)
 	}
 
