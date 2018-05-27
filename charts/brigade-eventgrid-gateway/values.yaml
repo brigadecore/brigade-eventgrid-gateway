@@ -5,7 +5,7 @@ rbac:
 
 image:
   repository: radumatei/brigade-eventgrid-gateway
-  tag: v0.1.4
+  tag: v0.1.6
   pullPolicy: Always
 
 service:
