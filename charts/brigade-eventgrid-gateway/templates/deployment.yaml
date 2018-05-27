@@ -1,12 +1,13 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "brigade-eventgrid-gateway.fullname" . }}
+  name: {{ template "brigade-eventgrid-gateway.name" . }}
   labels:
     app: {{ template "brigade-eventgrid-gateway.name" . }}
     chart: {{ template "brigade-eventgrid-gateway.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
+    role: gateway
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -18,7 +19,9 @@ spec:
       labels:
         app: {{ template "brigade-eventgrid-gateway.name" . }}
         release: {{ .Release.Name }}
+        role: gateway
     spec:
+      serviceAccountName: {{ template "brigade-eventgrid-gateway.name" . }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

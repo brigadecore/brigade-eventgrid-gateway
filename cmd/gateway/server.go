@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/brigade/pkg/storage/kube"
 
 	"github.com/radu-matei/brigade-eventgrid-gateway/pkg/cloudevents"
-	eventgrid "github.com/radu-matei/brigade-eventgrid-gateway/pkg/eventgrid"
+	"github.com/radu-matei/brigade-eventgrid-gateway/pkg/eventgrid"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"

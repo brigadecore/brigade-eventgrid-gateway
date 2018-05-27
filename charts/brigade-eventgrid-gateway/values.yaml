@@ -1,9 +1,12 @@
 replicaCount: 1
 
+rbac:
+  enabled: true
+
 image:
   repository: radumatei/brigade-eventgrid-gateway
-  tag: v0.1.3
-  pullPolicy: IfNotPresent
+  tag: v0.1.4
+  pullPolicy: Always
 
 service:
   type: ClusterIP
@@ -12,21 +15,13 @@ service:
 
 
 # for Azure EventGrid you must have TLS ingress
+# more information here - https://docs.microsoft.com/en-us/azure/event-grid/security-authentication
 ingress:
   enabled: true
-  annotations:
-     kubernetes.io/ingress.class: nginx
-     kubernetes.io/tls-acme: "true"
-  host: <your-HTTPS-endpoint>
+# by default, this chart uses TLS the annotations for kube-lego and nginx-ingress
+# if you have a different ingress controller, make sure to change them in ingress.yaml
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 128Mi
+  # annotations:
+  #   kubernetes.io/tls-acme: "true"
+  #   kubernetes.io/ingress.class: "nginx"
+  host: <your-HTTPS-endpoint>

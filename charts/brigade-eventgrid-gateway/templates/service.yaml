@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "brigade-eventgrid-gateway.fullname" . }}
+  name: {{ template "brigade-eventgrid-gateway.name" . }}
   labels:
     app: {{ template "brigade-eventgrid-gateway.name" . }}
     chart: {{ template "brigade-eventgrid-gateway.chart" . }}
