@@ -57,26 +57,17 @@ func main() {
 }
 
 func azFn(c *gin.Context) {
-
 	defer c.Request.Body.Close()
-	decoder := json.NewDecoder(c.Request.Body)
-	var received []eventgrid.Event
 
-	err := decoder.Decode(&received)
+	ev, err := eventgrid.NewFromRequestBody(c.Request.Body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "Malformed body"})
-		log.Debugf("cannot decode event: %v", err)
+		log.Debugf("cannot get event from request: %v", err)
 	}
-	ev := received[0]
+
 	log.Debugf("received event: %v", ev)
 
 	if ev.EventType == eventgrid.ValidationEvent {
-		data := ev.Data.(map[string]interface{})
-
-		// validate endpoint - https://docs.microsoft.com/en-us/azure/event-grid/security-authentication#webhook-event-delivery
-		r := gin.H{"validationResponse": data["validationCode"]}
-		c.JSON(http.StatusOK, r)
-		log.Debugf("sent validation response: %v", r)
+		sendValidationResponse(c, ev)
 		return
 	}
 
@@ -96,7 +87,7 @@ func azFn(c *gin.Context) {
 		tok := c.Param("token")
 		if realToken != tok {
 			c.JSON(http.StatusForbidden, gin.H{"status": "Forbidden"})
-			log.Debugf("Token does not match project's version: %v", err)
+			log.Debugf("token does not match project's version: %v", err)
 			return
 		}
 	}
@@ -116,6 +107,8 @@ func azFn(c *gin.Context) {
 			Commit: "HEAD",
 		},
 	}
+
+	log.Debugf("created build: %v", build)
 
 	err = store.CreateBuild(build)
 	if err != nil {
@@ -154,6 +147,9 @@ func ceFn(c *gin.Context) {
 		return
 	}
 
+	log.Debugf("received event: %v", envelope)
+	log.Debugf("event type: %v", envelope.EventType)
+
 	pid := c.Param("project")
 	project, err := store.GetProject(pid)
 	if err != nil {
@@ -161,6 +157,8 @@ func ceFn(c *gin.Context) {
 		log.Debugf("cannot get project ID: %v", err)
 		return
 	}
+
+	log.Debugf("found project: %v", project)
 
 	// TODO: Change this when Project.Gateways gets implemented.
 	if realToken := project.Secrets["eventGridToken"]; realToken != "" {
@@ -196,6 +194,8 @@ func ceFn(c *gin.Context) {
 		return
 	}
 
+	log.Debugf("created build: %v", build)
+
 	// It's unclear what we are supposed to return. The spec shows a response that
 	// contains the entire envelope... but it doesn't say under which conditions
 	// this is to be returned. So the safest route is to return it here.
@@ -206,21 +206,21 @@ func ceFn(c *gin.Context) {
 
 // TODO: once the validation event is CloudEvents compliant, remove this
 func validate(c *gin.Context, body io.Reader) error {
-	decoder := json.NewDecoder(body)
-	var received []eventgrid.Event
-
-	err := decoder.Decode(&received)
+	ev, err := eventgrid.NewFromRequestBody(body)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"status": "Malformed body"})
-		log.Debugf("validation cannot decode event: %v", err)
 		return err
 	}
-	ev := received[0]
+
+	sendValidationResponse(c, ev)
+	return nil
+}
+
+// TODO: once the validation event is CloudEvents compliant, make this work with both event types
+func sendValidationResponse(c *gin.Context, ev *eventgrid.Event) {
 	data := ev.Data.(map[string]interface{})
 
 	// validate endpoint - https://docs.microsoft.com/en-us/azure/event-grid/security-authentication#webhook-event-delivery
 	r := gin.H{"validationResponse": data["validationCode"]}
 	c.JSON(http.StatusOK, r)
 	log.Debugf("sent validation response: %v", r)
-	return nil
 }
