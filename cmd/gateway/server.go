@@ -21,7 +21,6 @@ import (
 )
 
 var (
-	store storage.Store
 	debug bool
 )
 
@@ -40,23 +39,44 @@ func main() {
 	if err != nil {
 		log.Fatalf("cannot get Kubernetes client: %v", err)
 	}
-	store = kube.New(client, "default")
+	store := kube.New(client, "default")
 
+	router := setupRouter(store)
+	router.Run()
+}
+
+func setupRouter(s storage.Store) *gin.Engine {
 	router := gin.New()
 	router.Use(gin.Recovery())
-	router.GET("/healthz", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{"message": "ok"}) })
+	router.GET("/healthz", healthz)
 
 	e := router.Group("/eventgrid")
+	e.Use(storeMiddleware(s))
 	e.POST("/:project", azFn)
 	e.POST("/:project/:token", azFn)
 
 	c := router.Group("/cloudevents/v0.1")
+	c.Use(storeMiddleware(s))
 	c.POST("/:project/:token", ceFn)
 
-	router.Run()
+	return router
+}
+
+// storeMiddleware passes a Brigade storage to the handler func
+func storeMiddleware(s storage.Store) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Set("store", s)
+		c.Next()
+	}
+}
+
+func healthz(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "ok"})
 }
 
 func azFn(c *gin.Context) {
+	s := c.MustGet("store").(storage.Store)
+
 	defer c.Request.Body.Close()
 
 	ev, err := eventgrid.NewFromRequestBody(c.Request.Body)
@@ -72,7 +92,7 @@ func azFn(c *gin.Context) {
 	}
 
 	pid := c.Param("project")
-	project, err := store.GetProject(pid)
+	project, err := s.GetProject(pid)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"status": "Resource Not Found"})
 		log.Debugf("cannot get project ID: %v", err)
@@ -110,19 +130,20 @@ func azFn(c *gin.Context) {
 
 	log.Debugf("created build: %v", build)
 
-	err = store.CreateBuild(build)
+	err = s.CreateBuild(build)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Failed to invoke hook"})
 		log.Debugf("failed to create build: %v", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "OK"})
+	c.JSON(http.StatusOK, ev)
 	return
 }
 
 // ceFn is a cloud events handler.
 func ceFn(c *gin.Context) {
+	s := c.MustGet("store").(storage.Store)
 
 	// read the request body
 	body, err := ioutil.ReadAll(c.Request.Body)
@@ -151,7 +172,7 @@ func ceFn(c *gin.Context) {
 	log.Debugf("event type: %v", envelope.EventType)
 
 	pid := c.Param("project")
-	project, err := store.GetProject(pid)
+	project, err := s.GetProject(pid)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"status": "Resource Not Found"})
 		log.Debugf("cannot get project ID: %v", err)
@@ -187,7 +208,7 @@ func ceFn(c *gin.Context) {
 		},
 	}
 
-	err = store.CreateBuild(build)
+	err = s.CreateBuild(build)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"status": "Failed to invoke hook"})
 		log.Debugf("failed to create build: %v", err)
