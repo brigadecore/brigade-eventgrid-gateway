@@ -11,7 +11,9 @@ First you need to clone this repo:
 
 `git clone https://github.com/radu-matei/brigade-eventgrid-gateway` and navigate to the root directory.
 
-Then install the Helm chart:
+[EventGrid needs an HTTPS endpoint to deliver the event][3], so you need to have TLS ingress for your cluster (use something like [kube-lego][4] or [cert-manager][5]), and this chart assumes you have an `nginx` ingress controller deployed on your cluster. Once you have an HTTPS domain or subdomain, pass it to the `ingress.host` property below.
+
+Now install the Helm chart:
 
 `helm install -n brigade-eventgrid-gateway ./charts/brigade-eventgrid-gateway --set ingress.host=<your-HTTPS-endpoint>`
 
@@ -19,21 +21,32 @@ Then install the Helm chart:
 
 > By default, the chart assumes you have a cluster with RBAC enabled. If you don't, either modify the `rbac.enabled` value in `values.yaml` or pass `--set rbac.enabled=false` to the `helm install` command. 
 
-> [EventGrid needs an HTTPS endpoint to deliver the event][3], so you need to have TLS ingress for your cluster (use something like [kube-lego][4] or [cert-manager][5]) - this chart assumes you have an nginx ingress controller deployed on your cluster. If you don't, you can [change the ingress annotations in the ingress template file](charts/brigade-eventgrid-gateway/templates/ingress.yaml) - but keep in mind that EventGrid will not pass events to a non-HTTPS endpoint.
+> If you don't have a domain or an ingress controller configured, you can [change the ingress annotations in the ingress template file](charts/brigade-eventgrid-gateway/templates/ingress.yaml) - but keep in mind that EventGrid will not pass events to a non-HTTPS endpoint.
 
-At this point, you should be able to navigate to `https://<your-endpoint>/healthz` and receive `"message": "ok"`, and you can start sending events to this gateway.
+At this point, you should be able to navigate to `https://<your-endpoint>/healthz` and receive `"message": "ok"` and you can start sending events to this gateway.
 
 
 ## Creating a Brigade project
 
-You can [follow the instructions from the official Brigade documentation](https://github.com/Azure/brigade/blob/master/docs/topics/projects.md) to create a new project - the gateway will use a token in order to make sure unauthorized people send events to your gateway - the token is passed in the URL and it is checked whenever a new event is received, before creating a new Brigade build. In your project `values.yaml` file, add the token:
+You can [follow the instructions from the official Brigade documentation](https://github.com/Azure/brigade/blob/master/docs/topics/projects.md) to create a new project - the gateway will use a token in order to make sure that if unauthorized people send events to your gateway, those will not become Brigade builds - the token is passed in the URL and it is checked whenever a new event is received, before creating a new Brigade build, and can be any string. In your project's `values.yaml` file, add an `eventGridToken` token:
 
 ```
+project: "<your-project>"
+repository: "<your-repo>"
+cloneURL: "<your-clone-url>"
+
 secrets:
-  eventGridToken: <your-token>
+  eventGridToken: "<your-token>"
+
+allowPrivilegedJobs: "false"
 ```
 
-Then create the project. When creating an EventGrid subscription you will need both the project ID and the token, as they will be part of the event endpoint URL.
+
+Then create the project:
+
+`helm install -n eventgrid-project brigade/brigade-project -f values.yaml`
+
+When creating an EventGrid subscription you will need both the project ID and the token, as they will be part of the event endpoint URL.
 
 ## Creating the Azure EventGrid subscription
 
@@ -54,9 +67,16 @@ az storage account create \
   --access-tier Hot
 ```
 
+> Please note that currently, Azure Event Grid has preview support for CloudEvents JSON format input and output in West Central US, Central US, and North Europe.
+
+> For more up-to-date information about regions and CloudEvents in Azure EventGrid, [check out the documentation][13]
+
 In order to create an event subscription, we need to pass the id to the resource that generates the events - in this case, we need to pass the id to the storage account we just created:
 
 `storageid=$(az storage account show --name <storage-account-name> --resource-group <resource-group-name> --query id --output tsv)`
+
+> Please that in this way you can get the ID of any Azure resource that supports generating events and sending them to EventGrid.
+> For an up-to-date list of Azure resources that support EventGrid, [check out the documentation][12]
 
 ### Using the CloudEvents schema
 
@@ -74,7 +94,11 @@ Then, we create the event subscription:
   --event-delivery-schema cloudeventv01schema
 ```
 
-Note that the path for CloudEvents is `/cloudevents/v0.1/<brigade-project-id>/<your-token>`.
+> You can get the Brigade Project ID using the [`brig`][11] tool: `brig project list`
+
+Note that the path for CloudEvents is `/cloudevents/v0.1/<brigade-project-id>/<your-token>`, and an example of the full URL would be:
+
+`https://$YOURDOMAIN/cloudevents/v0.1/brigade-9e0af40182d1ab201542ebfb7d795d189ad0ec0b73512190e93935/you-should-change-this-to-be-your-own`
 
 This is a sample event that follows the CloudEvents schema looks like:
 
@@ -142,6 +166,12 @@ This is a sample event that follows the Azure EventGrid default schema:
 }]
 ```
 
+> You can get the Brigade Project ID using the [`brig`][11] tool: `brig project list`
+
+An example of the full URL would be:
+
+`https://$YOURDOMAIN/eventgrid/brigade-9e0af40182d1ab201542ebfb7d795d189ad0ec0b73512190e93935/you-should-change-this-to-be-your-own`
+
 In both cases, a validation request will be sent to the endpoint, which this gateway handles - after this, the endpoint will receive events according to the subscription.
 
 
@@ -161,7 +191,7 @@ events.on("Microsoft.Storage.BlobCreated", (e, p) => {
 })
 ```
 
-At this point, whenever events are fired, the events will simple be logged to the console:
+At this point, whenever events are fired, our simple handlers will log them to the console:
 
 ```shell
 $ brig build logs 01cegwv9t48kva8wh093pw0hbn
@@ -182,6 +212,40 @@ prestart: src/brigade.js written[brigade] brigade-worker version: 0.14.0
 [brigade:k8s] Destroying PVC named brigade-worker-01cegwv9t48kva8wh093pw0hbn
 ```
 
+# Building from source and running locally
+
+Prerequisites:
+- [the Go toolchain][8]
+- [`dep`][9]
+- `make` (optional)
+
+To build from source:
+
+- `dep ensure`
+- `make build` or `go build` to build the binary for your OS
+- if running locally, you should provide an environment variable for the Kubernetes configuration file:
+  - on Linux (including Windows Subsystem for Linux) and macOS: `export KUBECONFIG=<path-to-config>`
+  - on Windows: `$env:KUBECONFIG="<path-to-config>"` 
+
+- starting the binary you should see the initial Gin output:
+
+```
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:   export GIN_MODE=release
+ - using code:  gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] GET    /healthz                  --> main.healthz (2 handlers)
+[GIN-debug] POST   /eventgrid/:project       --> main.azFn (3 handlers)
+[GIN-debug] POST   /eventgrid/:project/:token --> main.azFn (3 handlers)
+[GIN-debug] POST   /cloudevents/v0.1/:project/:token --> main.ceFn (3 handlers)
+[GIN-debug] Environment variable PORT is undefined. Using port :8080 by default
+[GIN-debug] Listening and serving HTTP on :8080
+```
+- at this point, your server should be able to start accepting incoming requests to `localhost:8080`
+- you can test the server locally, using [Postman][10] (POST requests with your desired JSON payload - see the `testdata` folders used for testing)
+- please note that running locally with a Kubernetes config file set is equivalent to running privileged inside the cluster, and any Brigade builds created will get executed!
+
+
 [1]: https://github.com/azure/brigade
 [2]: https://docs.microsoft.com/en-us/azure/event-grid/overview
 [3]: https://docs.microsoft.com/en-us/azure/event-grid/security-authentication#webhook-event-delivery
@@ -191,3 +255,12 @@ prestart: src/brigade.js written[brigade] brigade-worker version: 0.14.0
 
 [6]: https://github.com/Azure/brigade/blob/master/docs/topics/gateways.md
 [7]: charts/brigade-eventgrid-gateway/values.yaml
+
+[8]: https://golang.org/doc/install
+[9]: https://github.com/golang/dep
+
+[10]: https://www.getpostman.com/
+[11]: https://github.com/Azure/brigade/releases
+
+[12]: https://docs.microsoft.com/en-us/azure/event-grid/overview
+[13]: https://docs.microsoft.com/en-us/azure/event-grid/cloudevents-schema
