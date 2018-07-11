@@ -241,6 +241,7 @@ To build from source:
 [GIN-debug] Environment variable PORT is undefined. Using port :8080 by default
 [GIN-debug] Listening and serving HTTP on :8080
 ```
+
 - at this point, your server should be able to start accepting incoming requests to `localhost:8080`
 - you can test the server locally, using [Postman][10] (POST requests with your desired JSON payload - see the `testdata` folders used for testing)
 - please note that running locally with a Kubernetes config file set is equivalent to running privileged inside the cluster, and any Brigade builds created will get executed!
