@@ -21,11 +21,13 @@ import (
 )
 
 var (
-	debug bool
+	debug     bool
+	namespace string
 )
 
 func init() {
 	flag.BoolVar(&debug, "debug", true, "enable verbose output")
+	flag.StringVar(&namespace, "namespace", "default", "Kubernetes namespace")
 
 	flag.Parse()
 	if debug {
@@ -39,7 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("cannot get Kubernetes client: %v", err)
 	}
-	store := kube.New(client, "default")
+	store := kube.New(client, namespace)
 
 	router := setupRouter(store)
 	router.Run()
