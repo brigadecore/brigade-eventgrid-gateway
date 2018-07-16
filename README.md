@@ -1,5 +1,6 @@
 # Brigade EventGrid Gateway
-test
+test test 
+
 [Brigade][1] gateway that responds to [Azure EventGrid][2] events.
 
 > [Here you can read more about Brigade Gateways][6]
