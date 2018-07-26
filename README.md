@@ -44,7 +44,9 @@ allowPrivilegedJobs: "false"
 
 Then create the project:
 
-`helm install -n eventgrid-project brigade/brigade-project -f values.yaml`
+```
+helm install -n eventgrid-project brigade/brigade-project -f values.yaml
+```
 
 When creating an EventGrid subscription you will need both the project ID and the token, as they will be part of the event endpoint URL.
 
