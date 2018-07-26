@@ -10,7 +10,7 @@ OUTPUT_DIR = bin
 
 .PHONY: build
 build:
-	cd $(GATEWAY_CMD_PATH) && \
+        cd $(GATEWAY_CMD_PATH) && \
 	go build -o ../$(OUTPUT_DIR)/$(GATEWAY_BINARY_NAME)
 
 .PHONY: linux
