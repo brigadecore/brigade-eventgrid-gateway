@@ -82,7 +82,9 @@ In order to create an event subscription, we need to pass the id to the resource
 
 We want to generate events from Azure resources using the CloudEvents schema and handle them using the gateway we just deployed. Since the feature is currently in preview, we need to add an extension for the `az` command line:
 
-`az extension add --name eventgrid`
+```
+az extension add --name eventgrid
+```
 
 Then, we create the event subscription:
 
