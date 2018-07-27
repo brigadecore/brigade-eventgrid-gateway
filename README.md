@@ -7,6 +7,9 @@
 Deploying the gateway
 ---------------------
 
+
+testing aks patch
+
 First you need to clone this repo: 
 
 `git clone https://github.com/radu-matei/brigade-eventgrid-gateway` and navigate to the root directory.
