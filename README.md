@@ -6,6 +6,7 @@
 
 Deploying the gateway
 ---------------------
+testing aks patch
 
 First you need to clone this repo: 
 
