@@ -1,7 +1,7 @@
 const { events, Job, Group } = require("brigadier")
 
 const goImg = "golang:1.9"
-const checkRunImage = "technosophos/brigade-github-check-run:latest"
+const checkRunImage = "radumatei/brigade-github-check-run:latest"
 
 events.on("check_suite:requested", checkRequested)
 events.on("check_suite:rerequested", checkRequested)
