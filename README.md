@@ -88,7 +88,7 @@ Then, we create the event subscription:
 
 ```
   az eventgrid event-subscription create \
-  --resource-id $storageid \
+  --source-resource-id $storageid \
   --name brigade-cloudevents \
   --endpoint https://<your-endpoint>/cloudevents/v0.1/<brigade-project-id>/<your-token> \
   --event-delivery-schema cloudeventv01schema
@@ -131,7 +131,7 @@ This is a sample event that follows the CloudEvents schema looks like:
 
 ```
   az eventgrid event-subscription create \
-  --resource-id $storageid \
+  --source-resource-id $storageid \
   --name brigade-eventgrid \
   --endpoint https://<your-endpoint>/eventgrid/<brigade-project-id>/<your-token> 
 ```
