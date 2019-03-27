@@ -28,7 +28,7 @@ At this point, you should be able to navigate to `https://<your-endpoint>/health
 
 ## Creating a Brigade project
 
-You can [follow the instructions from the official Brigade documentation](https://github.com/Azure/brigade/blob/master/docs/topics/projects.md) to create a new project - the gateway will use a token in order to make sure that if unauthorized people send events to your gateway, those will not become Brigade builds - the token is passed in the URL and it is checked whenever a new event is received, before creating a new Brigade build, and can be any string. In your project's `values.yaml` file, add an `eventGridToken` token:
+You can [follow the instructions from the official Brigade documentation][14] to create a new project - the gateway will use a token in order to make sure that if unauthorized people send events to your gateway, those will not become Brigade builds - the token is passed in the URL and it is checked whenever a new event is received, before creating a new Brigade build, and can be any string. In your project's `values.yaml` file, add an `eventGridToken` token:
 
 ```
 project: "<your-project>"
@@ -253,7 +253,7 @@ To build from source:
 [4]: https://github.com/jetstack/kube-lego
 [5]: https://github.com/jetstack/cert-manager/
 
-[6]: https://github.com/Azure/brigade/blob/master/docs/topics/gateways.md
+[6]: https://docs.brigade.sh/topics/gateways/
 [7]: charts/brigade-eventgrid-gateway/values.yaml
 
 [8]: https://golang.org/doc/install
@@ -264,3 +264,5 @@ To build from source:
 
 [12]: https://docs.microsoft.com/en-us/azure/event-grid/overview
 [13]: https://docs.microsoft.com/en-us/azure/event-grid/cloudevents-schema
+
+[14]: https://github.com/cloudevents/spec/blob/master/json-format.md
