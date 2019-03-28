@@ -245,6 +245,15 @@ To build from source:
 - you can test the server locally, using [Postman][10] (POST requests with your desired JSON payload - see the `testdata` folders used for testing)
 - please note that running locally with a Kubernetes config file set is equivalent to running privileged inside the cluster, and any Brigade builds created will get executed!
 
+# Contributing
+
+This Brigade project accepts contributions via GitHub pull requests. This document outlines the process to help get your contribution accepted.
+
+## Signed commits
+
+A DCO sign-off is required for contributions to repos in the brigadecore org.  See the documentation in
+[Brigade's Contributing guide](https://github.com/brigadecore/brigade/blob/master/CONTRIBUTING.md#signed-commits)
+for how this is done.
 
 [1]: https://github.com/azure/brigade
 [2]: https://docs.microsoft.com/en-us/azure/event-grid/overview
