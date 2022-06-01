@@ -1,3 +1,11 @@
+> ⚠️&nbsp;&nbsp;This repo contains the source for a component of the Brigade
+> v1.x ecosystem. Brigade v1.x reached end-of-life on June 1, 2022 and as a
+> result, this component is no longer maintained.
+>
+> Brigade v2 users can utilize the
+> [Brigade CloudEvents Gateway](https://github.com/brigadecore/brigade-cloudevents-gateway)
+> to support the use cases previously supported by this gateway.
+
 # Brigade EventGrid Gateway
 
 [Brigade][1] gateway that responds to [Azure EventGrid][2] events.
